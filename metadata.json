@@ -1,0 +1,6 @@
+{
+  "name": "Satara Police Cyber Investigation Portal",
+  "description": "Satara Police Cyber Money Flow Investigation Portal - Financial transaction investigation & money flow analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
