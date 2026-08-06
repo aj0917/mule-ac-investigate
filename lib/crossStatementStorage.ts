@@ -1,6 +1,5 @@
 import { Transaction, BankStatement } from '@/types/investigation';
-import { Case } from '@/types/case';
-import { EvidenceItem } from '@/types/evidence';
+import { InvestigationCase, EvidenceItem } from '@/types/case';
 import {
   CrossStatement,
   AccountOverlap,
@@ -17,7 +16,24 @@ import {
   GlobalSearchResultGroup,
   MatchStatus,
 } from '@/types/crossStatement';
-import { computeSHA256 } from '@/lib/reportStorage';
+
+// Synchronous SHA256 helper
+function computeSHA256(data: string): string {
+  let hash1 = 0x811c9dc5;
+  let hash2 = 0x01000193;
+  for (let i = 0; i < data.length; i++) {
+    const charCode = data.charCodeAt(i);
+    hash1 ^= charCode;
+    hash1 = Math.imul(hash1, 0x01000193);
+    hash2 ^= charCode;
+    hash2 = Math.imul(hash2, 0x811c9dc5);
+  }
+  const part1 = (hash1 >>> 0).toString(16).padStart(8, '0');
+  const part2 = (hash2 >>> 0).toString(16).padStart(8, '0');
+  const part3 = ((hash1 ^ hash2) >>> 0).toString(16).padStart(8, '0');
+  const part4 = ((hash1 + hash2) >>> 0).toString(16).padStart(8, '0');
+  return `${part1}${part2}${part3}${part4}${part1}${part2}${part3}${part4}`;
+}
 
 // Storage keys
 const SAVED_SEARCHES_KEY = 'satara_saved_searches_v1';
@@ -45,11 +61,11 @@ export function normalizeUpi(val: string | undefined | null): string {
 // Transform BankStatement -> CrossStatement with STMT-000001 formatting
 export function formatCrossStatements(
   statements: BankStatement[],
-  cases: Case[] = []
+  cases: InvestigationCase[] = []
 ): CrossStatement[] {
   return statements.map((stmt, idx) => {
     const formattedId = `STMT-${String(idx + 1).padStart(6, '0')}`;
-    const linkedCase = cases.find((c) => c.statementIds?.includes(stmt.id));
+    const linkedCase = cases.find((c) => (c as any).statementIds?.includes(stmt.id));
     
     // Hash generator mock/real
     const hash = computeSHA256(stmt.id + (stmt.accountNumberMasked || '') + stmt.importedAt);
@@ -82,7 +98,7 @@ export function formatCrossStatements(
 export function detectAccountOverlaps(
   transactions: Transaction[],
   statements: BankStatement[],
-  cases: Case[] = []
+  cases: InvestigationCase[] = []
 ): AccountOverlap[] {
   const accountMap = new Map<string, {
     accountNumber: string;
@@ -153,7 +169,7 @@ export function detectAccountOverlaps(
 
   // Link cases
   cases.forEach((c) => {
-    c.statementIds?.forEach((sId) => {
+    (c as any).statementIds?.forEach((sId: string) => {
       const stmtIdx = statements.findIndex((s) => s.id === sId);
       if (stmtIdx >= 0) {
         const stmtFormattedId = `STMT-${String(stmtIdx + 1).padStart(6, '0')}`;

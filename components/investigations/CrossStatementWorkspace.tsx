@@ -34,8 +34,7 @@ import {
   Award,
 } from 'lucide-react';
 import { Transaction, BankStatement } from '@/types/investigation';
-import { Case } from '@/types/case';
-import { EvidenceItem } from '@/types/evidence';
+import { InvestigationCase, EvidenceItem } from '@/types/case';
 import {
   CrossStatement,
   AccountOverlap,
@@ -74,7 +73,7 @@ interface CrossStatementWorkspaceProps {
   initialQuery?: string;
   transactions: Transaction[];
   statements: BankStatement[];
-  cases?: Case[];
+  cases?: InvestigationCase[];
   evidenceList?: EvidenceItem[];
   onOpenAccountIntelligence?: (accountId: string) => void;
 }
